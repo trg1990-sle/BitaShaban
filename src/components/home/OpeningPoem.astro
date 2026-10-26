@@ -1,0 +1,88 @@
+---
+import Verse from '~/components/Verse.astro';
+import type { Post } from '~/lib/content';
+import { seedComments } from '~/lib/comments/seed';
+
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+const notes = seedComments(post.slug).length;
+---
+
+<section class="opening page-grid has-margin-rule" aria-labelledby="opening-title">
+  <div class="opening__margin">
+    <p class="label opening__kicker">A poem to begin</p>
+    <h2 class="opening__title" id="opening-title" data-wet="chars">
+      <a href={post.url}>{post.title}</a>
+    </h2>
+    <p class="label opening__meta">{post.formLabel} · {post.measure}</p>
+  </div>
+
+  <div class="opening__poem">
+    {
+      post.body.kind === 'verse' && (
+        <Verse
+          blocks={post.body.blocks}
+          maxIndent={post.body.maxIndent}
+          lineCount={post.body.lineCount}
+          size="display"
+        />
+      )
+    }
+    <p class="opening__after" data-wet="block">
+      <a class="ink-link" href={`${post.url}#marginalia`}>
+        {notes > 0 ? `Read the ${notes} ${notes === 1 ? 'note' : 'notes'} in its margin` : 'Leave the first note in its margin'}
+      </a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .opening {
+    padding-block: clamp(7rem, 16vw, 13rem) clamp(9rem, 20vw, 16rem);
+    row-gap: 2.5rem;
+  }
+  .opening__margin {
+    grid-column: margin;
+    align-self: start;
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+  }
+  .opening__kicker,
+  .opening__meta {
+    color: var(--fg-2);
+  }
+  .opening__title {
+    margin-block: 0.9rem 0.8rem;
+    font-size: clamp(2rem, 1.2rem + 2.6vw, 3.4rem);
+    font-weight: 320;
+    font-style: italic;
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+  .opening__title a {
+    text-decoration: none;
+  }
+  .opening__title a:hover {
+    color: var(--accent);
+  }
+  .opening__poem {
+    grid-column: text-start / full-end;
+    padding-inline-end: var(--gutter);
+  }
+  .opening__after {
+    margin-block-start: 3.5rem;
+    font-size: var(--small);
+  }
+  @media (max-width: 47.99rem) {
+    .opening__margin {
+      position: static;
+      grid-column: text;
+    }
+    .opening__poem {
+      grid-column: text;
+      padding-inline-end: 0;
+    }
+  }
+</style>

@@ -1,0 +1,93 @@
+---
+import { site } from '~/data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer wrap">
+  <p class="site-footer__line" data-wet="lines">Every piece has a margin. <em>Leave a note in it.</em></p>
+
+  <div class="site-footer__grid">
+    <nav aria-label="Footer">
+      <ul>
+        <li><a class="ink-link" href="/">Home</a></li>
+        {site.nav.map((i) => <li><a class="ink-link" href={i.href}>{i.label}</a></li>)}
+        <li><a class="ink-link" href="/rss.xml" data-astro-reload>RSS feed</a></li>
+      </ul>
+    </nav>
+    {
+      site.email && (
+        <p>
+          <span class="label">Write to Bita</span>
+          <br />
+          <a class="ink-link" href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+      )
+    }
+    {
+      site.social.length > 0 && (
+        <ul class="site-footer__social">
+          {site.social.map((s) => (
+            <li>
+              <a class="ink-link" href={s.href} rel="me">
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <p class="site-footer__colophon">
+      Set in Fraunces and DM Mono. The ink is drawn live as you read, and dries.
+    </p>
+    <p class="label site-footer__copy">© {year} {site.name}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    padding-block: clamp(6rem, 14vw, 11rem) 2.5rem;
+  }
+  .site-footer__line {
+    max-width: 16ch;
+    font-size: clamp(2.4rem, 1rem + 5.4vw, 6.25rem);
+    font-weight: 300;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+  .site-footer__line em {
+    display: block;
+    padding-inline-start: 1.1em;
+    color: var(--accent);
+  }
+  .site-footer__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 2rem;
+    align-items: end;
+    margin-block-start: clamp(4rem, 9vw, 7rem);
+    font-size: var(--small);
+    color: var(--fg-2);
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  a {
+    color: var(--fg);
+  }
+  .site-footer__colophon {
+    max-width: 22rem;
+    line-height: 1.55;
+  }
+  .site-footer__copy {
+    justify-self: end;
+  }
+  @media (max-width: 40rem) {
+    .site-footer__copy {
+      justify-self: start;
+    }
+  }
+</style>

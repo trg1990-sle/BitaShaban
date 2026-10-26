@@ -1,0 +1,47 @@
+---
+// An ink study (or any content image) as a responsive AVIF/WebP picture.
+import { Picture } from 'astro:assets';
+import type { ImageAsset } from '~/lib/content';
+
+interface Props {
+  image: ImageAsset;
+  sizes: string;
+  widths?: number[];
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  /** Ink studies blend into the paper; photographs should not. */
+  blend?: boolean;
+}
+
+const { image, sizes, widths = [240, 400, 640, 900], class: cls, loading = 'lazy', blend = true } = Astro.props;
+---
+
+{
+  typeof image.src === 'string' ? (
+    <Picture
+      src={image.src}
+      alt={image.alt}
+      width={image.width}
+      height={image.height}
+      widths={widths}
+      sizes={sizes}
+      formats={['avif', 'webp']}
+      fallbackFormat="webp"
+      loading={loading}
+      decoding="async"
+      class:list={[{ 'ink-study': blend }, cls]}
+    />
+  ) : (
+    <Picture
+      src={image.src}
+      alt={image.alt}
+      widths={widths}
+      sizes={sizes}
+      formats={['avif', 'webp']}
+      fallbackFormat="webp"
+      loading={loading}
+      decoding="async"
+      class:list={[{ 'ink-study': blend }, cls]}
+    />
+  )
+}

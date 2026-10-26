@@ -1,0 +1,33 @@
+---
+import Base from '~/layouts/Base.astro';
+import Hero from '~/components/home/Hero.astro';
+import OpeningPoem from '~/components/home/OpeningPoem.astro';
+import Selected from '~/components/home/Selected.astro';
+import Glimpse from '~/components/home/Glimpse.astro';
+import { getAbout, getFeaturedPosts, getPost, getPosts } from '~/lib/content';
+import { site } from '~/data/site';
+
+const [posts, featured, about, opening, linePost] = await Promise.all([
+  getPosts(),
+  getFeaturedPosts(),
+  getAbout(),
+  getPost(site.openingPoem),
+  getPost(site.heroLine.slug),
+]);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: site.name,
+  url: site.url,
+  description: site.description,
+  author: { '@type': 'Person', name: site.name, url: new URL('/about/', site.url).href },
+};
+---
+
+<Base page="home" inkTrail="full" description={site.description} jsonLd={jsonLd}>
+  <Hero linePost={linePost} />
+  {opening && <OpeningPoem post={opening} />}
+  <Selected posts={featured} total={posts.length} />
+  <Glimpse about={about} />
+</Base>

@@ -1,0 +1,67 @@
+---
+import '@fontsource-variable/fraunces/full.css';
+import '@fontsource-variable/fraunces/full-italic.css';
+import '@fontsource/dm-mono/400.css';
+import '@fontsource/dm-mono/500.css';
+import '~/styles/global.css';
+import frauncesLatin from '@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2?url';
+import { ClientRouter } from 'astro:transitions';
+import Seo, { type SeoProps } from '~/components/Seo.astro';
+import Header from '~/components/Header.astro';
+import Footer from '~/components/Footer.astro';
+
+interface Props extends SeoProps {
+  /** Identifies the page for scripts and styles. */
+  page: string;
+  /** How strongly the pointer leaves ink on this page. */
+  inkTrail?: 'full' | 'soft' | 'quiet' | 'off';
+}
+
+const { page, inkTrail = 'soft', ...seo } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" transition:animate="none">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var t = localStorage.getItem('bs:theme');
+          if (t === 'paper' || t === 'night') d.dataset.theme = t;
+          var s = parseFloat(localStorage.getItem('bs:text-scale') || '');
+          if (s >= 0.9 && s <= 1.3) d.style.setProperty('--reading-scale', String(s));
+        } catch (e) {}
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('wet');
+      })();
+    </script>
+    <Seo {...seo} />
+    <link rel="preload" href={frauncesLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="alternate" type="application/rss+xml" title="Bita Shaban: writing" href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#e4e2e8" />
+    <ClientRouter fallback="swap" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <canvas class="ink-canvas" aria-hidden="true" transition:persist="ink-canvas"></canvas>
+    <div class="ink-wipe" aria-hidden="true" transition:persist="ink-wipe"></div>
+    <div class="site">
+      <Header />
+      <main id="main" tabindex="-1" data-page={page} data-ink-trail={inkTrail}>
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <script>
+      import '~/scripts/app';
+    </script>
+  </body>
+</html>

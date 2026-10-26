@@ -1,0 +1,67 @@
+---
+import type { ProseBlock } from '~/lib/content';
+import { escapeHtml, segmentsHtml } from '~/lib/render';
+
+interface Props {
+  blocks: ProseBlock[];
+  /** Prose poems are set as justified blocks; essays are ragged-right. */
+  mode?: 'prose-poem' | 'essay';
+  class?: string;
+}
+
+const { blocks, mode = 'essay', class: cls } = Astro.props;
+const ornament = `<div class="prose__break" role="separator"><svg viewBox="0 0 60 12" width="60" height="12" aria-hidden="true"><circle cx="8" cy="6" r="2.4"/><circle cx="30" cy="6" r="3.2"/><circle cx="52" cy="6" r="2.4"/></svg></div>`;
+const html = blocks
+  .map((b) => {
+    if (b.type === 'break') return ornament;
+    if (b.type === 'heading') return `<h2 class="prose__heading">${escapeHtml(b.text)}</h2>`;
+    return `<p>${segmentsHtml(b.segments)}</p>`;
+  })
+  .join('');
+---
+
+<div class:list={['prose', `prose--${mode}`, cls]} data-reveal="blocks" data-quotable set:html={html} />
+
+<style>
+  .prose {
+    font-size: var(--text);
+    line-height: 1.72;
+    font-weight: 380;
+    hyphens: manual;
+  }
+  .prose :global(p + p) {
+    margin-block-start: 1.1lh;
+  }
+  .prose--prose-poem {
+    line-height: 1.68;
+  }
+  .prose--prose-poem :global(p + p) {
+    margin-block-start: 1.5lh;
+  }
+  @media (min-width: 40rem) {
+    .prose--prose-poem {
+      text-align: justify;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+      text-wrap: pretty;
+    }
+  }
+  .prose--essay {
+    text-wrap: pretty;
+  }
+  .prose :global(.prose__heading) {
+    margin-block: 2.2lh 0.8lh;
+    font-size: 1.15em;
+    font-weight: 450;
+    font-style: italic;
+  }
+  .prose :global(.prose__break) {
+    display: flex;
+    justify-content: center;
+    margin-block: 2.2lh;
+    color: var(--fg-2);
+  }
+  .prose :global(.prose__break svg) {
+    fill: currentColor;
+  }
+</style>

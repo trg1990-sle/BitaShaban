@@ -1,0 +1,462 @@
+---
+import { getImage } from 'astro:assets';
+import Base from '~/layouts/Base.astro';
+import InkStudy from '~/components/InkStudy.astro';
+import { getFacets, getPosts, themeLabel, type Post } from '~/lib/content';
+import { formatDate, isoDate } from '~/lib/render';
+
+const posts = await getPosts();
+const { forms, themes } = await getFacets();
+
+const previews = new Map<string, string>();
+for (const p of posts) {
+  if (p.inkStudy && typeof p.inkStudy.src !== 'string')
+    previews.set(p.slug, (await getImage({ src: p.inkStudy.src, width: 520, format: 'webp', quality: 78 })).src);
+}
+
+// Index of first lines: alphabetical, grouped by initial, the way printed collections do it.
+const sortKey = (s: string) => s.replace(/^[^\p{L}\p{N}]+/u, '').toLocaleLowerCase('en');
+const byFirstLine = [...posts].sort((a, b) => sortKey(a.firstLine).localeCompare(sortKey(b.firstLine), 'en'));
+const groups = new Map<string, Post[]>();
+for (const p of byFirstLine) {
+  const letter = sortKey(p.firstLine).charAt(0).toUpperCase() || '#';
+  groups.set(letter, [...(groups.get(letter) ?? []), p]);
+}
+
+const years = posts.map((p) => p.date.getUTCFullYear());
+const span = Math.min(...years) === Math.max(...years) ? `${years[0]}` : `${Math.min(...years)}–${Math.max(...years)}`;
+---
+
+<Base
+  page="writing"
+  inkTrail="soft"
+  title="Writing"
+  description={`All of Bita Shaban's poems, prose poems, fragments and essays, ${span}. Browse by title or by first line.`}
+>
+  <div class="index wrap" data-index data-view="contents">
+    <header class="index__head">
+      <p class="label index__kicker">{posts.length} pieces, {span}</p>
+      <h1 class="index__title" data-wet="chars">Writing</h1>
+      <p class="index__lede" data-wet="block">
+        Poems, prose poems, fragments and the occasional essay, newest first. Read them by title, or by their first
+        lines, the way old collections were indexed.
+      </p>
+    </header>
+
+    <div class="index__controls" data-wet="block">
+      <div class="seg" role="group" aria-label="Arrange by">
+        <button type="button" class="seg__btn" data-view-btn="contents" aria-pressed="true">Contents</button>
+        <button type="button" class="seg__btn" data-view-btn="first-lines" aria-pressed="false">First lines</button>
+      </div>
+
+      <div class="filters">
+        <div class="filters__group" role="group" aria-label="Filter by form">
+          <span class="label filters__name" aria-hidden="true">Form</span>
+          <button type="button" class="chip" data-filter="form" data-value="" aria-pressed="true">All</button>
+          {
+            forms.map((f) => (
+              <button type="button" class="chip" data-filter="form" data-value={f.value} aria-pressed="false">
+                {f.label}
+                <span class="chip__n">{f.count}</span>
+              </button>
+            ))
+          }
+        </div>
+        <div class="filters__group" role="group" aria-label="Filter by theme">
+          <span class="label filters__name" aria-hidden="true">Theme</span>
+          <button type="button" class="chip" data-filter="theme" data-value="" aria-pressed="true">Any</button>
+          {
+            themes.map((t) => (
+              <button type="button" class="chip" data-filter="theme" data-value={t.value} aria-pressed="false">
+                {t.label}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+      <p class="label index__count" data-count aria-live="polite">{posts.length} pieces</p>
+    </div>
+
+    <section class="contents" aria-labelledby="contents-title">
+      <h2 class="visually-hidden" id="contents-title">Contents</h2>
+      <ul class="rows" role="list">
+        {
+          posts.map((p) => (
+            <li data-item data-form={p.form} data-themes={p.themes.join(' ')}>
+              <a class="row" href={p.url} data-preview={previews.get(p.slug)}>
+                <span class="row__title">{p.title}</span>
+                <span class="row__first">{p.firstLine}</span>
+                <span class="row__meta label">
+                  {p.formLabel} · {p.measure}
+                </span>
+                <span class="row__date label">
+                  <time datetime={isoDate(p.date)}>{formatDate(p.date, 'short')}</time>
+                </span>
+                {p.inkStudy && (
+                  <span class="row__thumb" aria-hidden="true">
+                    <InkStudy image={p.inkStudy} sizes="4rem" widths={[120, 240]} />
+                  </span>
+                )}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="first-lines" aria-labelledby="first-lines-title">
+      <h2 class="first-lines__title" id="first-lines-title">Index of first lines</h2>
+      {
+        [...groups].map(([letter, items]) => (
+          <div class="letter" data-letter-group>
+            <p class="letter__mark" aria-hidden="true">
+              {letter}
+            </p>
+            <ul role="list">
+              {items.map((p) => (
+                <li data-item data-form={p.form} data-themes={p.themes.join(' ')}>
+                  <a class="fl" href={p.url} data-preview={previews.get(p.slug)}>
+                    <span class="fl__line">{p.firstLine}</span>
+                    <span class="fl__title label">{p.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </section>
+
+    <p class="index__empty" data-empty hidden>
+      Nothing here is both of those things yet.{' '}
+      <button type="button" class="ink-link" data-clear>Show everything</button>
+    </p>
+
+    <p class="index__themes visually-hidden">
+      Themes: {themes.map((t) => themeLabel(t.value)).join(', ')}.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .index {
+    padding-block: calc(var(--header-h) + clamp(3rem, 9vw, 7rem)) 2rem;
+  }
+  .index__head {
+    display: grid;
+    grid-template-columns: var(--margin-col) minmax(0, 1fr);
+    column-gap: var(--col-gap);
+  }
+  .index__kicker {
+    grid-column: 1 / -1;
+    color: var(--fg-2);
+  }
+  .index__title {
+    grid-column: 1 / -1;
+    margin-block: 0.75rem 1.5rem;
+    font-size: clamp(4rem, 2rem + 13vw, 13.5rem);
+    font-weight: 280;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    --wonk: 1;
+  }
+  .index__lede {
+    grid-column: 2;
+    max-width: 34rem;
+    color: var(--fg-2);
+    font-size: var(--small);
+    line-height: 1.6;
+  }
+
+  /* controls */
+  .index__controls {
+    display: grid;
+    grid-template-columns: var(--margin-col) minmax(0, 1fr) auto;
+    column-gap: var(--col-gap);
+    row-gap: 1.25rem;
+    align-items: start;
+    margin-block: clamp(3rem, 7vw, 5rem) 1.5rem;
+  }
+  :global(html:not(.js)) .index__controls {
+    display: none;
+  }
+  .seg {
+    display: inline-flex;
+    align-self: start;
+    justify-self: start;
+    padding: 3px;
+    border: 1px solid color-mix(in oklab, var(--fg) 18%, transparent);
+    border-radius: 999px;
+  }
+  .seg__btn {
+    min-height: 2.5rem;
+    padding: 0 1rem;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: var(--label);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--fg-2);
+    transition:
+      background-color var(--quick) ease,
+      color var(--quick) ease;
+  }
+  .seg__btn[aria-pressed='true'] {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .seg__btn:not([aria-pressed='true']):hover {
+    color: var(--fg);
+  }
+  .filters {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .filters__group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.15rem 0.35rem;
+  }
+  .filters__name {
+    width: 4.25rem;
+    color: var(--fg-2);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    min-height: 2.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--fg-2);
+    transition:
+      color var(--quick) ease,
+      background-color var(--quick) ease;
+  }
+  .chip:hover {
+    color: var(--fg);
+  }
+  .chip[aria-pressed='true'] {
+    color: var(--fg);
+    background: color-mix(in oklab, var(--accent) 13%, transparent);
+  }
+  .chip__n {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    font-style: normal;
+    color: var(--fg-2);
+  }
+  .index__count {
+    color: var(--fg-2);
+    justify-self: end;
+    padding-block-start: 0.8rem;
+  }
+
+  /* contents */
+  .rows {
+    list-style: none;
+    padding: 0;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: var(--margin-col) minmax(0, 1fr) auto;
+    grid-template-areas:
+      'date title meta'
+      'date first thumb';
+    column-gap: var(--col-gap);
+    row-gap: 0.35rem;
+    align-items: baseline;
+    padding-block: clamp(1.25rem, 2.6vw, 2rem);
+    border-block-start: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+    text-decoration: none;
+    transition: opacity 0.4s ease;
+  }
+  .row__date {
+    grid-area: date;
+    color: var(--fg-2);
+  }
+  .row__title {
+    grid-area: title;
+  }
+  .row__title {
+    font-size: clamp(1.75rem, 1rem + 2.6vw, 3.25rem);
+    font-weight: 310;
+    line-height: 1.04;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    transition:
+      --soft 0.7s var(--ease-ink),
+      color 0.3s ease;
+  }
+  .row__first {
+    grid-area: first;
+    font-style: italic;
+    color: var(--fg-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .row__meta {
+    grid-area: meta;
+    justify-self: end;
+    color: var(--fg-2);
+    white-space: nowrap;
+  }
+  .row__thumb {
+    display: none;
+  }
+  .row:hover .row__title,
+  .row:focus-visible .row__title {
+    --soft: 100;
+    color: var(--accent);
+  }
+  .rows:has(.row:hover) .row:not(:hover) {
+    opacity: 0.45;
+  }
+
+  /* first lines */
+  .first-lines {
+    margin-block-start: 4rem;
+  }
+  .first-lines__title {
+    font-size: clamp(1.75rem, 1rem + 2.4vw, 3rem);
+    font-weight: 310;
+    font-style: italic;
+    margin-block-end: 2rem;
+  }
+  .index.is-enhanced[data-view='contents'] .first-lines,
+  .index.is-enhanced[data-view='first-lines'] .contents {
+    display: none;
+  }
+  .index.is-enhanced .first-lines {
+    margin-block-start: 0;
+  }
+  .index.is-enhanced .first-lines__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .letter {
+    display: grid;
+    grid-template-columns: var(--margin-col) minmax(0, 1fr);
+    column-gap: var(--col-gap);
+    padding-block: 1.25rem;
+    border-block-start: 1px solid color-mix(in oklab, var(--fg) 12%, transparent);
+  }
+  .letter__mark {
+    font-size: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+    font-weight: 280;
+    font-style: italic;
+    line-height: 0.9;
+    color: var(--accent);
+  }
+  .letter ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .fl {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 1rem;
+    padding-block: 0.4rem;
+    text-decoration: none;
+  }
+  .fl__line {
+    font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem);
+    font-style: italic;
+    font-weight: 330;
+    transition:
+      color var(--quick) ease,
+      --soft 0.6s var(--ease-ink);
+  }
+  .fl__title {
+    color: var(--fg-2);
+  }
+  .fl:hover .fl__line,
+  .fl:focus-visible .fl__line {
+    color: var(--accent);
+    --soft: 100;
+  }
+
+  :global([data-item].is-arriving) {
+    animation: arrive 0.6s var(--ease-ink);
+  }
+  @keyframes arrive {
+    from {
+      opacity: 0;
+      filter: blur(4px);
+    }
+  }
+
+  .index__empty {
+    padding-block: 3rem;
+    font-size: 1.25rem;
+    font-style: italic;
+    color: var(--fg-2);
+  }
+  .index__empty button {
+    font-style: normal;
+    color: var(--fg);
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .row__thumb {
+      display: block;
+      grid-area: thumb;
+      justify-self: end;
+      width: 3.5rem;
+      aspect-ratio: 1;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .row__thumb :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  @media (max-width: 47.99rem) {
+    .index__head,
+    .index__controls,
+    .row,
+    .letter {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .index__lede {
+      grid-column: 1 / -1;
+    }
+    .index__controls > * {
+      grid-column: 1 / -1;
+    }
+    .index__count {
+      justify-self: start;
+      padding: 0;
+    }
+    .row {
+      grid-template-areas:
+        'date meta'
+        'title thumb'
+        'first thumb';
+    }
+    .row__first {
+      white-space: normal;
+    }
+    .letter {
+      grid-template-columns: 3rem minmax(0, 1fr);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global([data-item].is-arriving) {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,69 @@
+---
+import Base from '~/layouts/Base.astro';
+import Verse from '~/components/Verse.astro';
+import { parseVerse } from '~/lib/content/format';
+
+// A short poem for the empty page. Placeholder, like the rest of the writing.
+const poem = parseVerse(`The page you wanted
+is a white field now.
+Move your hand across it:
+        even the blank
+                takes ink.`);
+---
+
+<Base page="not-found" inkTrail="full" title="Nothing was written here" description="This page does not exist." noindex>
+  <section class="nf page-grid" aria-labelledby="nf-title">
+    <p class="label nf__code">404 · Page not found</p>
+    <h1 class="nf__title" id="nf-title" data-wet="chars">Nothing was written here.</h1>
+    <div class="nf__poem">
+      <Verse blocks={poem.blocks} maxIndent={poem.maxIndent} lineCount={poem.lineCount} size="display" />
+    </div>
+    <p class="nf__help" data-wet="block">
+      The address may have changed, or the page was never written. Try <a class="ink-link" href="/writing/">all writing</a>
+      or go back to <a class="ink-link" href="/">the first page</a>.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + clamp(3rem, 10vw, 8rem)) 4rem;
+    align-content: start;
+    row-gap: 2.5rem;
+  }
+  .nf__code {
+    grid-column: margin;
+    color: var(--fg-2);
+    padding-block-start: 1rem;
+  }
+  .nf__title {
+    grid-column: text-start / full-end;
+    grid-row: 1;
+    padding-inline-end: var(--gutter);
+    max-width: 11em;
+    font-size: clamp(2.8rem, 1rem + 6.5vw, 7.5rem);
+    font-weight: 290;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+  }
+  .nf__poem {
+    margin-block-start: 1.5rem;
+  }
+  .nf__help {
+    color: var(--fg-2);
+    font-size: var(--small);
+    max-width: 30rem;
+  }
+  .nf__help a {
+    color: var(--fg);
+  }
+  @media (max-width: 47.99rem) {
+    .nf__code,
+    .nf__title {
+      grid-column: text;
+      grid-row: auto;
+      padding-inline-end: 0;
+    }
+  }
+</style>

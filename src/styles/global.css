@@ -1,0 +1,539 @@
+/* ==========================================================================
+   Wet Ink — global styles
+   Tokens, base type, layout primitives and the few global components.
+   Component-specific styles live in each component's <style> block.
+   ========================================================================== */
+
+/* ---- Tokens ------------------------------------------------------------ */
+
+:root {
+  /* palette (see DESIGN.md) */
+  --blotter: #e4e2e8;
+  --blotter-shade: #d6d3dd;
+  --gall: #1c1a24;
+  --gall-faded: #5c586a;
+  --gall-wet: #4e49b0;
+  --inkwell: #15121d;
+  --red-pen: #a1283b;
+
+  /* roles: Paper */
+  --bg: var(--blotter);
+  --surface: var(--blotter-shade);
+  --fg: var(--gall);
+  --fg-2: var(--gall-faded);
+  --accent: var(--gall-wet);
+  --error: var(--red-pen);
+  --rule: color-mix(in oklab, var(--gall-wet) 34%, transparent);
+  --paper-blend: overlay;
+
+  /* the flooded "night" sections */
+  --night-bg: var(--inkwell);
+  --night-fg: #e4e2e8;
+  --night-fg-2: #a29fb3;
+  --night-accent: #aaa6f6;
+
+  /* type */
+  --serif: 'Fraunces Variable', 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --reading-scale: 1;
+  --text: calc(clamp(1.125rem, 0.95rem + 0.55vw, 1.375rem) * var(--reading-scale));
+  --small: 0.9375rem;
+  --label: 0.72rem;
+
+  /* space & layout */
+  --gutter: clamp(1.25rem, 4.5vw, 3.5rem);
+  --measure: 40rem;
+  --margin-col: clamp(10rem, 19vw, 18rem);
+  --col-gap: clamp(1.5rem, 4vw, 4.5rem);
+  --header-h: 4.25rem;
+
+  /* motion */
+  --ease-ink: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-paper: cubic-bezier(0.65, 0, 0.35, 1);
+  --quick: 180ms;
+
+  color-scheme: light;
+}
+
+:root[data-theme='night'] {
+  --bg: #121019;
+  --surface: #1d1a27;
+  --fg: #e4e2e8;
+  --fg-2: #a29fb3;
+  --accent: #9c97f0;
+  --error: #f07a8a;
+  --rule: color-mix(in oklab, #9c97f0 30%, transparent);
+  --paper-blend: soft-light;
+  --night-bg: #1b1830;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) {
+    --bg: #121019;
+    --surface: #1d1a27;
+    --fg: #e4e2e8;
+    --fg-2: #a29fb3;
+    --accent: #9c97f0;
+    --error: #f07a8a;
+    --rule: color-mix(in oklab, #9c97f0 30%, transparent);
+    --paper-blend: soft-light;
+    --night-bg: #1b1830;
+    color-scheme: dark;
+  }
+}
+
+/* ---- Reset ------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  /* Fraunces' extra axes; animated from wet (SOFT 100) to dry (SOFT 0). */
+  font-variation-settings:
+    'SOFT' var(--soft, 0),
+    'WONK' var(--wonk, 0);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  hanging-punctuation: first last;
+  scrollbar-gutter: stable;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+body {
+  min-height: 100svh;
+  background-color: var(--bg);
+  background-image: url('/textures/paper.webp');
+  background-size: 640px 640px;
+  background-blend-mode: var(--paper-blend);
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: var(--text);
+  font-weight: 380;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+img,
+picture,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.2em;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--gall-wet) 30%, transparent);
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---- Utilities --------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.label {
+  font-family: var(--mono);
+  font-size: var(--label);
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-variation-settings: normal;
+}
+
+.wrap {
+  width: 100%;
+  padding-inline: var(--gutter);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--fg);
+  color: var(--bg);
+  transform: translateY(-200%);
+  transition: transform var(--quick) ease;
+}
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* An underlined text link that "wets" on hover. */
+.ink-link {
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklab, currentColor 40%, transparent);
+  transition:
+    color var(--quick) ease,
+    text-decoration-color var(--quick) ease;
+}
+.ink-link:hover {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}
+
+/* A quiet text button in the utility face. */
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  padding-inline: 0.25rem;
+  font-family: var(--mono);
+  font-size: var(--label);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  transition: color var(--quick) ease;
+}
+.text-button:hover,
+.text-button[aria-pressed='true'] {
+  color: var(--fg);
+}
+
+/* ---- Night (flooded) sections ------------------------------------------ */
+
+/* With WebGL the ink is drawn live behind these; without it, CSS does the job. */
+[data-ink-region] {
+  --fg: var(--night-fg);
+  --fg-2: var(--night-fg-2);
+  --accent: var(--night-accent);
+  --rule: color-mix(in oklab, var(--night-accent) 30%, transparent);
+  position: relative;
+  color: var(--fg);
+  background-color: var(--night-bg);
+}
+[data-ink-region]::before,
+[data-ink-region]::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: clamp(3rem, 7vw, 6rem);
+  background: var(--night-bg);
+  -webkit-mask: url('/textures/ink-edge.png') repeat-x 0 100% / 1200px 100%;
+  mask: url('/textures/ink-edge.png') repeat-x 0 100% / 1200px 100%;
+  pointer-events: none;
+}
+[data-ink-region]::before {
+  bottom: calc(100% - 1px);
+}
+[data-ink-region]::after {
+  top: calc(100% - 1px);
+  transform: scaleY(-1);
+  -webkit-mask-position: 600px 100%;
+  mask-position: 600px 100%;
+}
+/* Live ink: the inside is still painted here, clipped to the flood front the engine
+   writes into --ink-front; WebGL only draws the ragged fringe beyond the box. */
+html.ink-live [data-ink-region] {
+  background-color: transparent;
+}
+html.ink-live [data-ink-region]::before {
+  inset: 0;
+  height: auto;
+  z-index: -1;
+  background: var(--night-bg);
+  -webkit-mask: none;
+  mask: none;
+  clip-path: inset(0 0 calc(100% - var(--ink-front, 100%)) 0);
+}
+html.ink-live [data-ink-region]::after {
+  display: none;
+}
+
+/* ---- The ink canvas ---------------------------------------------------- */
+
+/* Behind the content but above the paper. Nothing between it and the page creates a
+   stacking context, so ink studies can blend with the paper and the ink beneath them. */
+.ink-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+html.is-turning .ink-canvas {
+  z-index: 90;
+}
+
+/* CSS page turn, used when WebGL is unavailable or motion is reduced. */
+.ink-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: var(--inkwell);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ---- Wet-to-dry entrances ---------------------------------------------- */
+
+/* Registered so CSS animations (new notes drying) can interpolate it. */
+@property --soft {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+/* Hidden only until the motion script takes over; shown anyway if it never does. */
+html.wet:not(.wet-ready) :is([data-wet], [data-reveal]) {
+  opacity: 0.07;
+  animation: wet-failsafe 0.6s ease 2.5s forwards;
+}
+@keyframes wet-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+/* SplitText wrappers */
+.w {
+  white-space: nowrap;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* ---- The reading grid (pieces, the about page, the opening poem) -------- */
+
+.page-grid {
+  display: grid;
+  grid-template-columns:
+    [full-start] var(--gutter)
+    [margin-start] var(--margin-col)
+    [margin-end] var(--col-gap)
+    [text-start] minmax(0, var(--measure))
+    [text-end] minmax(var(--gutter), 1fr)
+    [full-end];
+}
+.page-grid > * {
+  grid-column: text;
+}
+@media (max-width: 47.99rem) {
+  .page-grid {
+    grid-template-columns: [full-start] var(--gutter) [margin-start text-start] minmax(0, 1fr) [margin-end text-end] var(--gutter) [full-end];
+  }
+}
+
+/* the notebook margin: one rule between margin and text */
+.has-margin-rule {
+  position: relative;
+}
+.has-margin-rule::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--gutter) + var(--margin-col) + var(--col-gap) / 2);
+  width: 1px;
+  background: var(--rule);
+  pointer-events: none;
+}
+@media (max-width: 47.99rem) {
+  .has-margin-rule::before {
+    display: none;
+  }
+}
+
+/* ---- Ink-study preview that follows the pointer ------------------------- */
+
+.ink-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  width: clamp(11rem, 17vw, 16rem);
+  aspect-ratio: 1;
+  margin: calc(clamp(11rem, 17vw, 16rem) / -2) 0 0 calc(clamp(11rem, 17vw, 16rem) / -2);
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.86;
+  mix-blend-mode: multiply;
+  transition:
+    opacity 0.35s ease,
+    scale 0.6s var(--ease-ink);
+}
+.ink-preview.on-ink {
+  mix-blend-mode: normal;
+}
+:root[data-theme='night'] .ink-preview:not(.on-ink) {
+  mix-blend-mode: screen;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .ink-preview:not(.on-ink) {
+    mix-blend-mode: screen;
+  }
+}
+.ink-preview.is-on {
+  opacity: 1;
+  scale: 1;
+}
+.ink-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ink-preview.on-ink img {
+  filter: none;
+  border-radius: 2px;
+  box-shadow: 0 1.5rem 3rem -1rem rgb(0 0 0 / 0.5);
+}
+:root[data-theme='night'] .ink-preview:not(.on-ink) img {
+  filter: invert(1) hue-rotate(180deg);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .ink-preview:not(.on-ink) img {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
+
+/* ---- "Note this line" ---------------------------------------------------- */
+
+.quote-button {
+  position: absolute;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: 0 0.6rem 1.6rem -0.6rem rgb(0 0 0 / 0.45);
+  animation: quote-in 0.35s var(--ease-ink);
+}
+.quote-button:hover {
+  background: var(--accent);
+}
+@keyframes quote-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Ink studies sit on the page as if blotted onto it: their paper is white (levelled at
+   build time) and multiplied away, so only the ink remains. At night, inverted and screened. */
+.ink-study {
+  mix-blend-mode: multiply;
+}
+:root[data-theme='night'] .ink-study {
+  filter: invert(1) hue-rotate(180deg);
+  mix-blend-mode: screen;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .ink-study {
+    filter: invert(1) hue-rotate(180deg);
+    mix-blend-mode: screen;
+  }
+}
+/* A sticky wrapper is its own stacking context, so the image inside has nothing to blend
+   with. These wrappers carry the blend instead. */
+.ink-blend {
+  mix-blend-mode: multiply;
+}
+:root[data-theme='night'] .ink-blend {
+  mix-blend-mode: screen;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .ink-blend {
+    mix-blend-mode: screen;
+  }
+}
+:root[data-theme='night'] .ink-blend:has(.is-art) {
+  mix-blend-mode: normal;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .ink-blend:has(.is-art) {
+    mix-blend-mode: normal;
+  }
+}
+
+/* Figurative artwork keeps its colours at night rather than turning negative. */
+:root[data-theme='night'] .ink-study.is-art {
+  filter: brightness(0.92);
+  mix-blend-mode: normal;
+  border-radius: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='paper']) .ink-study.is-art {
+    filter: brightness(0.92);
+    mix-blend-mode: normal;
+    border-radius: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

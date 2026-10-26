@@ -1,0 +1,198 @@
+---
+// "Selected writing": the night section. The ink floods in behind it.
+import { getImage } from 'astro:assets';
+import InkStudy from '~/components/InkStudy.astro';
+import type { Post } from '~/lib/content';
+
+interface Props {
+  posts: Post[];
+  total: number;
+}
+const { posts, total } = Astro.props;
+
+const previews = await Promise.all(
+  posts.map(async (p) =>
+    p.inkStudy && typeof p.inkStudy.src !== 'string'
+      ? (await getImage({ src: p.inkStudy.src, width: 520, format: 'webp', quality: 78 })).src
+      : undefined,
+  ),
+);
+---
+
+<section class="selected" data-ink-region aria-labelledby="selected-title">
+  <div class="selected__inner wrap">
+    <header class="selected__head">
+      <h2 class="selected__title" id="selected-title" data-wet="chars">Selected writing</h2>
+      <p class="selected__intro" data-wet="block">
+        {posts.length} pieces to begin with. The other {total - posts.length} are in the index.
+      </p>
+    </header>
+
+    <ul class="selected__list" role="list">
+      {
+        posts.map((p, i) => (
+          <li data-wet="block">
+            <a class="sel" href={p.url} data-preview={previews[i]}>
+              <span class="sel__title">{p.title}</span>
+              <span class="sel__first">{p.excerpt[0]}</span>
+              <span class="sel__meta label">
+                {p.formLabel} · {p.measure}
+              </span>
+              {p.inkStudy && (
+                <span class="sel__thumb" aria-hidden="true">
+                  <InkStudy image={p.inkStudy} sizes="5rem" widths={[120, 240]} blend={false} />
+                </span>
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="selected__all" data-wet="block">
+      <a href="/writing/" class="selected__all-link">
+        All writing <span class="label">{total} pieces</span> <span aria-hidden="true">→</span>
+      </a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .selected {
+    padding-block: clamp(8rem, 16vw, 13rem) clamp(7rem, 14vw, 11rem);
+  }
+  .selected__head {
+    display: grid;
+    grid-template-columns: var(--margin-col) minmax(0, 1fr);
+    column-gap: var(--col-gap);
+    align-items: end;
+    margin-block-end: clamp(3.5rem, 8vw, 6rem);
+  }
+  .selected__title {
+    grid-column: 1 / -1;
+    font-size: clamp(3rem, 1.2rem + 8vw, 9rem);
+    font-weight: 290;
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+  }
+  .selected__intro {
+    grid-column: 2;
+    margin-block-start: 1.75rem;
+    max-width: 30rem;
+    color: var(--fg-2);
+    font-size: var(--small);
+  }
+
+  .selected__list {
+    list-style: none;
+    padding: 0;
+    border-block-start: 1px solid var(--rule);
+  }
+  .selected__list li {
+    border-block-end: 1px solid var(--rule);
+  }
+  .sel {
+    display: grid;
+    grid-template-columns: var(--margin-col) minmax(0, 1fr) auto;
+    grid-template-areas:
+      'meta title thumb'
+      'meta first thumb';
+    column-gap: var(--col-gap);
+    row-gap: 0.6rem;
+    align-items: baseline;
+    padding-block: clamp(1.6rem, 3.4vw, 2.75rem);
+    text-decoration: none;
+    transition: opacity 0.45s ease;
+  }
+  .sel__meta {
+    grid-area: meta;
+    color: var(--fg-2);
+  }
+  .sel__title {
+    grid-area: title;
+    font-size: clamp(2rem, 1rem + 4.2vw, 4.75rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    transition:
+      --soft 0.7s var(--ease-ink),
+      color 0.3s ease,
+      translate 0.7s var(--ease-ink);
+  }
+  .sel__first {
+    grid-area: first;
+    font-style: italic;
+    color: var(--fg-2);
+    font-size: clamp(1rem, 0.9rem + 0.4vw, 1.25rem);
+  }
+  .sel__thumb {
+    display: none;
+  }
+  .sel:hover .sel__title,
+  .sel:focus-visible .sel__title {
+    --soft: 100;
+    translate: 0.12em 0;
+  }
+  .selected__list:has(.sel:hover) .sel:not(:hover) {
+    opacity: 0.38;
+  }
+
+  .selected__all {
+    margin-block-start: clamp(2.5rem, 6vw, 4rem);
+    display: flex;
+    justify-content: flex-end;
+  }
+  .selected__all-link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: clamp(1.4rem, 1rem + 1.4vw, 2.2rem);
+    font-style: italic;
+    font-weight: 330;
+    text-decoration: none;
+  }
+  .selected__all-link .label {
+    color: var(--fg-2);
+    font-style: normal;
+  }
+  .selected__all-link:hover {
+    color: var(--accent);
+  }
+
+  /* no hover: show each piece's ink study inline */
+  @media (hover: none), (pointer: coarse) {
+    .sel__thumb {
+      display: block;
+      grid-area: thumb;
+      align-self: center;
+      width: clamp(3.75rem, 14vw, 5.5rem);
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 2px;
+    }
+    .sel__thumb :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  @media (max-width: 47.99rem) {
+    .selected__head {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .sel {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'meta thumb'
+        'title thumb'
+        'first thumb';
+    }
+    .selected__intro {
+      grid-column: 1;
+    }
+    .selected__all {
+      justify-content: flex-start;
+    }
+  }
+</style>

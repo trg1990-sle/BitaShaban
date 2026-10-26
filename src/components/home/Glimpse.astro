@@ -1,0 +1,80 @@
+---
+import InkStudy from '~/components/InkStudy.astro';
+import type { AboutPage } from '~/lib/content';
+
+interface Props {
+  about: AboutPage;
+}
+const { about } = Astro.props;
+---
+
+<section class="glimpse page-grid" aria-labelledby="glimpse-title">
+  {
+    about.image && (
+      <figure class="glimpse__figure" data-wet="block">
+        <InkStudy class="is-art" image={about.image} sizes="(max-width: 48rem) 80vw, 18rem" widths={[320, 480, 720]} />
+      </figure>
+    )
+  }
+  <div class="glimpse__text">
+    <h2 class="label glimpse__label" id="glimpse-title">About Bita</h2>
+    <p class="glimpse__lede" data-wet="lines">{about.glimpse}</p>
+    <p data-wet="block">
+      <a class="glimpse__link" href="/about/">Read her story <span aria-hidden="true">→</span></a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .glimpse {
+    padding-block: clamp(9rem, 18vw, 15rem) 0;
+    row-gap: 2.5rem;
+    align-items: start;
+  }
+  .glimpse__figure {
+    grid-column: margin;
+    max-width: 18rem;
+  }
+  .glimpse__figure :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .glimpse__text {
+    grid-column: text-start / full-end;
+    padding-inline-end: var(--gutter);
+    max-width: 52rem;
+  }
+  .glimpse__label {
+    color: var(--fg-2);
+  }
+  .glimpse__lede {
+    margin-block: 1.5rem 2.5rem;
+    font-size: clamp(1.6rem, 1rem + 2.2vw, 3rem);
+    font-weight: 310;
+    line-height: 1.22;
+    letter-spacing: -0.012em;
+    text-wrap: pretty;
+  }
+  .glimpse__link {
+    display: inline-flex;
+    gap: 0.6rem;
+    font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+    font-style: italic;
+    text-decoration: underline;
+    text-decoration-thickness: 0.05em;
+    text-underline-offset: 0.25em;
+  }
+  .glimpse__link:hover {
+    color: var(--accent);
+  }
+  @media (max-width: 47.99rem) {
+    .glimpse__figure {
+      grid-column: text;
+      max-width: 15rem;
+    }
+    .glimpse__text {
+      grid-column: text;
+      padding-inline-end: 0;
+    }
+  }
+</style>

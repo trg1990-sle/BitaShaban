@@ -1,0 +1,171 @@
+{
+  "_comment": "PLACEHOLDER: sample reader notes so every comment state can be seen. Keyed by post slug. Remove or replace once a real comments backend is connected. 'byPoet' marks Bita's own replies. 'quote' is the line a note responds to.",
+  "iron-gall": [
+    {
+      "id": "seed-ig-1",
+      "author": "Maren",
+      "body": "I read this on my phone on the train and then went home and found an old fountain pen just to watch the ink change.",
+      "quote": "becoming what I meant.",
+      "createdAt": "2026-10-04T21:12:00Z"
+    },
+    {
+      "id": "seed-ig-2",
+      "author": "Jonah",
+      "body": "“the colour of a leaf that kept its shape” is going on the inside cover of my notebook.",
+      "createdAt": "2026-10-06T08:40:00Z"
+    },
+    {
+      "id": "seed-ig-3",
+      "parentId": "seed-ig-2",
+      "author": "Bita Shaban",
+      "byPoet": true,
+      "body": "That is exactly where it belongs. Thank you, Jonah.",
+      "createdAt": "2026-10-06T19:02:00Z"
+    }
+  ],
+  "inventory-of-a-small-house": [
+    {
+      "id": "seed-inv-1",
+      "author": "Ilse",
+      "body": "Our fourth stair speaks too. I have never once thought of it as a poem until now.",
+      "quote": "The fourth one speaks.",
+      "createdAt": "2026-07-05T22:31:00Z"
+    },
+    {
+      "id": "seed-inv-2",
+      "author": "Tomás",
+      "body": "The way the last section walks down the page. I had to scroll slowly. I think that was the point.",
+      "createdAt": "2026-07-09T13:15:00Z"
+    },
+    {
+      "id": "seed-inv-3",
+      "parentId": "seed-inv-2",
+      "author": "Bita Shaban",
+      "byPoet": true,
+      "body": "It was. It took me eleven drafts to let it take up the page.",
+      "createdAt": "2026-07-10T09:47:00Z"
+    },
+    {
+      "id": "seed-inv-4",
+      "author": "Ada",
+      "body": "“like a guest who has been here before / and knows where the cups are”. Yes.",
+      "createdAt": "2026-08-01T17:20:00Z"
+    }
+  ],
+  "the-night-bus": [
+    {
+      "id": "seed-nb-1",
+      "author": "Kit",
+      "body": "I drove a night bus for six years. This is the first thing I have read that gets the depot right.",
+      "quote": "dreaming whatever buses dream",
+      "createdAt": "2026-05-30T02:10:00Z"
+    },
+    {
+      "id": "seed-nb-2",
+      "author": "Noor",
+      "body": "The cold climbing in to look around and deciding not to stay. I will think of this every winter now.",
+      "createdAt": "2026-06-02T07:55:00Z"
+    }
+  ],
+  "on-leaving-a-word-out": [
+    {
+      "id": "seed-ol-1",
+      "author": "Wren",
+      "body": "I teach a poetry workshop on Thursdays and I would love to read this to them. The drawer of buttons is perfect.",
+      "createdAt": "2026-04-13T16:05:00Z"
+    },
+    {
+      "id": "seed-ol-2",
+      "parentId": "seed-ol-1",
+      "author": "Bita Shaban",
+      "byPoet": true,
+      "body": "Please do. Tell them to bring their own buttons.",
+      "createdAt": "2026-04-14T10:30:00Z"
+    }
+  ],
+  "fragments-from-a-winter-notebook": [
+    {
+      "id": "seed-fw-1",
+      "author": "Sol",
+      "body": "Number three. That is the whole of January in seven words.",
+      "quote": "My breath leaves before I do.",
+      "createdAt": "2026-02-09T07:12:00Z"
+    }
+  ],
+  "rain-descending": [
+    {
+      "id": "seed-rd-1",
+      "author": "Hester",
+      "body": "Read this with the window open while it was actually raining. Recommended.",
+      "createdAt": "2025-11-23T15:44:00Z"
+    }
+  ],
+  "instructions-for-keeping-a-lamp": [
+    {
+      "id": "seed-il-1",
+      "author": "Leon",
+      "body": "We leave a lamp on in the hall when we go away. Now I know why.",
+      "quote": "Let the street believe",
+      "createdAt": "2026-01-02T20:18:00Z"
+    },
+    {
+      "id": "seed-il-2",
+      "author": "Priya",
+      "body": "“It will start to read you back.” A small shiver.",
+      "createdAt": "2026-01-05T23:51:00Z"
+    }
+  ],
+  "things-i-have-mistaken-for-birds": [
+    {
+      "id": "seed-tb-1",
+      "author": "Ada",
+      "body": "The glove on the railing. I have seen that exact glove. Everyone has.",
+      "createdAt": "2026-03-16T11:03:00Z"
+    },
+    {
+      "id": "seed-tb-2",
+      "author": "Maren",
+      "body": "The ending turned the whole list around for me. I went back to the top and read it again as a list of things she did not let go of.",
+      "quote": "which I mistook for nothing,",
+      "createdAt": "2026-03-18T21:37:00Z"
+    },
+    {
+      "id": "seed-tb-3",
+      "author": "Jonah",
+      "body": "The word later. Ouch.",
+      "createdAt": "2026-03-20T06:29:00Z"
+    }
+  ],
+  "insomnia": [
+    {
+      "id": "seed-in-1",
+      "author": "Noor",
+      "body": "Read at 3:40 in the morning. Accurate.",
+      "createdAt": "2026-01-19T00:40:00Z"
+    }
+  ],
+  "letter-to-the-woman-who-lived-here-before": [
+    {
+      "id": "seed-lw-1",
+      "author": "Hester",
+      "body": "There are pencil heights inside our pantry door too, from a family we never met. We never painted over them either.",
+      "quote": "a ladder of heights in pencil,",
+      "createdAt": "2026-06-11T18:26:00Z"
+    },
+    {
+      "id": "seed-lw-2",
+      "parentId": "seed-lw-1",
+      "author": "Bita Shaban",
+      "byPoet": true,
+      "body": "Then this letter is for her too.",
+      "createdAt": "2026-06-12T08:14:00Z"
+    },
+    {
+      "id": "seed-lw-3",
+      "author": "Tomás",
+      "body": "Signing it “the new woman” undid me a little.",
+      "createdAt": "2026-06-15T22:02:00Z"
+    }
+  ],
+  "what-the-sea-gives-back": []
+}

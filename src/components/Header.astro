@@ -1,0 +1,149 @@
+---
+import { site } from '~/data/site';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<header class="site-header">
+  <a class="site-header__name" href="/" aria-current={path === '/' ? 'page' : undefined}>
+    Bita Shaban<span class="visually-hidden">, home</span>
+  </a>
+  <nav class="site-header__nav" aria-label="Main">
+    <ul>
+      {
+        site.nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+      <svg class="theme-toggle__icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+        <circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+        <path class="theme-toggle__fill" d="M10 2.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor"></path>
+      </svg>
+      <span>Night</span>
+    </button>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    height: var(--header-h);
+    padding-inline: var(--gutter);
+    color: var(--fg);
+    transition:
+      transform 0.6s var(--ease-ink),
+      color 0.4s ease,
+      background-color 0.4s ease;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: color-mix(in oklab, var(--bg) 82%, transparent);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .site-header:global(.is-scrolled)::before {
+    opacity: 1;
+  }
+  .site-header:global(.is-hidden) {
+    transform: translateY(-105%);
+  }
+  .site-header:global(.is-on-ink) {
+    --fg: var(--night-fg);
+    --fg-2: var(--night-fg-2);
+    --accent: var(--night-accent);
+  }
+  .site-header:global(.is-on-ink)::before {
+    background: color-mix(in oklab, var(--night-bg) 80%, transparent);
+  }
+
+  .site-header__name {
+    font-size: 1.125rem;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    white-space: nowrap;
+    padding-block: 0.6rem;
+  }
+  .site-header__nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 2.5vw, 2rem);
+  }
+  ul {
+    display: flex;
+    gap: clamp(0.75rem, 2.5vw, 2rem);
+    list-style: none;
+    padding: 0;
+  }
+  .site-header__nav a,
+  .theme-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    font-family: var(--mono);
+    font-size: var(--label);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--fg-2);
+    transition: color var(--quick) ease;
+  }
+  .site-header__nav a:hover,
+  .theme-toggle:hover,
+  .site-header__nav a[aria-current='page'] {
+    color: var(--fg);
+  }
+  .site-header__nav a[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0.45rem;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .theme-toggle__fill {
+    transform-origin: 10px 10px;
+    transition: transform 0.5s var(--ease-ink);
+  }
+  .theme-toggle[aria-pressed='true'] .theme-toggle__fill {
+    transform: rotate(180deg);
+  }
+  @media (max-width: 30rem) {
+    .theme-toggle span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .site-header {
+      transition: none;
+    }
+  }
+</style>

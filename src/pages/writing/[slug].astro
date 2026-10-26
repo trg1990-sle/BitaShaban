@@ -1,0 +1,408 @@
+---
+import Base from '~/layouts/Base.astro';
+import Verse from '~/components/Verse.astro';
+import Prose from '~/components/Prose.astro';
+import InkStudy from '~/components/InkStudy.astro';
+import Marginalia from '~/components/marginalia/Marginalia.svelte';
+import { getAdjacentPosts, getPosts, themeLabel, type Post } from '~/lib/content';
+import { seedComments } from '~/lib/comments/seed';
+import { formatDate, isoDate } from '~/lib/render';
+import { site } from '~/data/site';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+interface Props {
+  post: Post;
+}
+const { post } = Astro.props;
+const { previous, next } = await getAdjacentPosts(post.slug);
+
+// With a real comments API the list loads in the browser; the seed is only for the mock.
+const initial = import.meta.env.PUBLIC_COMMENTS_API ? [] : seedComments(post.slug);
+const formName = post.formLabel.toLowerCase();
+const url = new URL(post.url, site.url).href;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  headline: post.title,
+  genre: post.formLabel,
+  keywords: post.themes.join(', '),
+  inLanguage: 'en',
+  datePublished: isoDate(post.date),
+  url,
+  image: new URL(`/og/${post.slug}.jpg`, site.url).href,
+  author: { '@type': 'Person', name: site.name, url: new URL('/about/', site.url).href },
+  commentCount: initial.length,
+};
+---
+
+<Base
+  page="piece"
+  inkTrail="quiet"
+  title={post.title}
+  description={post.description}
+  type="article"
+  published={post.date}
+  image={`/og/${post.slug}.jpg`}
+  imageAlt={`“${post.title}”, a ${formName} by ${site.name}`}
+  jsonLd={jsonLd}
+>
+  <article class="piece page-grid has-margin-rule" aria-labelledby="piece-title" data-form={post.form}>
+    <nav class="piece__crumbs" aria-label="Breadcrumb">
+      <a class="label" href="/writing/"><span aria-hidden="true">←</span> All writing</a>
+    </nav>
+
+    <header class="piece__head">
+      <h1 class="piece__title" id="piece-title" data-wet="chars">{post.title}</h1>
+      {post.epigraph && <p class="piece__epigraph">{post.epigraph}</p>}
+    </header>
+
+    <aside class="piece__margin" aria-label="About this piece">
+      <dl class="piece__facts">
+        <div>
+          <dt class="visually-hidden">Form</dt>
+          <dd class="label">{post.formLabel} · {post.measure}</dd>
+        </div>
+        <div>
+          <dt class="visually-hidden">Published</dt>
+          <dd class="label"><time datetime={isoDate(post.date)}>{formatDate(post.date)}</time></dd>
+        </div>
+        {
+          post.themes.length > 0 && (
+            <div class="piece__themes">
+              <dt class="visually-hidden">Themes</dt>
+              <dd>
+                {post.themes.map((t) => (
+                  <a href={`/writing/?theme=${t}`}>{themeLabel(t)}</a>
+                ))}
+              </dd>
+            </div>
+          )
+        }
+      </dl>
+
+      <div class="piece__tools">
+        <div class="tool" role="group" aria-label="Text size">
+          <span class="label tool__name" aria-hidden="true">Text</span>
+          <button type="button" class="tool__btn" data-text-size="-1" aria-label="Smaller text">A−</button>
+          <span class="label tool__value" data-text-size-value aria-hidden="true">100%</span>
+          <button type="button" class="tool__btn" data-text-size="1" aria-label="Larger text">A+</button>
+        </div>
+        <div class="tool">
+          <button type="button" class="text-button" data-share="copy" data-url={url} data-title={post.title}>
+            <span data-label>Copy link</span>
+          </button>
+          <button type="button" class="text-button" data-share="native" data-url={url} data-title={post.title} hidden>
+            Share…
+          </button>
+        </div>
+        <p class="visually-hidden" data-share-status aria-live="polite"></p>
+        <a class="text-button" href="#marginalia">
+          {initial.length > 0 ? `${initial.length} ${initial.length === 1 ? 'note' : 'notes'} in the margin` : 'Leave a note'}
+          <span aria-hidden="true">↓</span>
+        </a>
+      </div>
+    </aside>
+
+    <div class="piece__body">
+      {
+        post.body.kind === 'verse' ? (
+          <Verse
+            blocks={post.body.blocks}
+            maxIndent={post.body.maxIndent}
+            lineCount={post.body.lineCount}
+            mode={post.form === 'fragments' ? 'fragments' : 'poem'}
+          />
+        ) : (
+          <Prose blocks={post.body.blocks} mode={post.form === 'prose-poem' ? 'prose-poem' : 'essay'} />
+        )
+      }
+      <svg class="piece__end" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <path d="M12.2 3.4c3.6.3 7.4 3.1 7.6 7.4.2 4.6-3.3 8.9-7.9 9-4.4.1-8-3.2-8-7.8 0-4.9 4-8.9 8.3-8.6z" />
+      </svg>
+    </div>
+
+    {
+      post.inkStudy && (
+        <figure class="piece__study ink-blend" aria-hidden="true">
+          <InkStudy image={post.inkStudy} sizes="(min-width: 75rem) 22vw, (min-width: 48rem) 12rem, 9rem" widths={[240, 400, 640]} />
+        </figure>
+      )
+    }
+  </article>
+
+  <section id="marginalia" class="marginalia-section page-grid has-margin-rule" aria-labelledby="marginalia-title">
+    <Marginalia client:visible postId={post.slug} formName={formName} initial={initial} />
+    <noscript>
+      <p class="noscript">Reading notes works without JavaScript; leaving one needs it.</p>
+    </noscript>
+  </section>
+
+  <nav class="turn page-grid" aria-label="More writing">
+    {
+      next && (
+        <a class="turn__next" href={next.url}>
+          <span class="label turn__label">Turn the page</span>
+          <span class="turn__title">{next.title}</span>
+          <span class="turn__first">{next.firstLine}</span>
+        </a>
+      )
+    }
+    {
+      previous && (
+        <p class="turn__prev">
+          <span class="label">Newer</span>
+          <a class="ink-link" href={previous.url}>
+            {previous.title}
+          </a>
+        </p>
+      )
+    }
+  </nav>
+</Base>
+
+<style>
+  .piece {
+    padding-block-start: calc(var(--header-h) + clamp(2.5rem, 7vw, 6rem));
+    row-gap: 0;
+    align-items: start;
+  }
+  .piece__crumbs {
+    grid-column: margin;
+    grid-row: 1;
+    padding-block-start: 0.6rem;
+  }
+  .piece__crumbs a {
+    color: var(--fg-2);
+    text-decoration: none;
+  }
+  .piece__crumbs a:hover {
+    color: var(--fg);
+  }
+  .piece__head {
+    grid-column: text-start / full-end;
+    grid-row: 1;
+    padding-inline-end: var(--gutter);
+    padding-block-end: clamp(2.5rem, 6vw, 4.5rem);
+  }
+  .piece__title {
+    max-width: 14em;
+    font-size: clamp(2.6rem, 1.2rem + 5.4vw, 6.25rem);
+    font-weight: 300;
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+  .piece__epigraph {
+    margin-block-start: 1.5rem;
+    font-style: italic;
+    color: var(--fg-2);
+  }
+
+  .piece__margin {
+    grid-column: margin;
+    grid-row: 2 / span 2;
+    position: sticky;
+    top: calc(var(--header-h) + 1.5rem);
+    display: grid;
+    gap: 2rem;
+    padding-block-start: 0.45rem;
+  }
+  .piece__facts {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .piece__facts dd {
+    color: var(--fg-2);
+  }
+  .piece__themes dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.75rem;
+    margin-block-start: 0.35rem;
+  }
+  .piece__themes a {
+    font-style: italic;
+    color: var(--fg);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+    text-underline-offset: 0.2em;
+  }
+  .piece__themes a:hover {
+    color: var(--accent);
+  }
+  .piece__tools {
+    display: grid;
+    justify-items: start;
+    gap: 0.25rem;
+  }
+  .tool {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .tool__name {
+    color: var(--fg-2);
+    margin-inline-end: 0.35rem;
+  }
+  .tool__btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border-radius: 50%;
+    font-size: 0.95rem;
+    color: var(--fg);
+    transition: background-color var(--quick) ease;
+  }
+  .tool__btn:hover:not(:disabled) {
+    background: color-mix(in oklab, var(--accent) 12%, transparent);
+  }
+  .tool__btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .tool__value {
+    min-width: 2.6rem;
+    text-align: center;
+    color: var(--fg-2);
+  }
+
+  .piece__body {
+    grid-column: text;
+    grid-row: 2;
+    position: relative;
+  }
+  .piece__end {
+    margin-block-start: 3.5rem;
+    fill: var(--fg);
+    opacity: 0.85;
+  }
+  .piece[data-form='prose-poem'] .piece__end,
+  .piece[data-form='essay'] .piece__end {
+    margin-inline: auto;
+  }
+
+  .piece__study {
+    grid-column: text-end / full-end;
+    grid-row: 2;
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+    justify-self: stretch;
+    max-width: calc(20rem + 2 * var(--gutter));
+    padding-inline: var(--gutter);
+  }
+  .piece__study :global(img) {
+    width: 100%;
+    height: auto;
+  }
+
+  .marginalia-section {
+    margin-block-start: clamp(6rem, 12vw, 10rem);
+    padding-block: clamp(3rem, 6vw, 5rem);
+  }
+  .noscript {
+    grid-column: text;
+    color: var(--fg-2);
+    font-style: italic;
+  }
+
+  .turn {
+    padding-block: clamp(5rem, 10vw, 8rem) 0;
+    row-gap: 2rem;
+  }
+  .turn__next {
+    grid-column: text-start / full-end;
+    display: grid;
+    gap: 0.75rem;
+    padding-inline-end: var(--gutter);
+    text-decoration: none;
+  }
+  .turn__label {
+    color: var(--fg-2);
+  }
+  .turn__title {
+    font-size: clamp(2.4rem, 1rem + 5vw, 5.5rem);
+    font-weight: 290;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    transition:
+      --soft 0.8s var(--ease-ink),
+      color 0.3s ease;
+  }
+  .turn__first {
+    font-style: italic;
+    color: var(--fg-2);
+  }
+  .turn__next:hover .turn__title,
+  .turn__next:focus-visible .turn__title {
+    --soft: 100;
+    color: var(--accent);
+  }
+  .turn__prev {
+    grid-column: text;
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+  .turn__prev .label {
+    color: var(--fg-2);
+  }
+
+  /* Between tablet and wide desktop, the ink study moves into the margin. */
+  @media (max-width: 74.99rem) {
+    .piece__study {
+      grid-column: margin;
+      grid-row: 4;
+      position: static;
+      justify-self: start;
+      width: 11rem;
+      max-width: none;
+      padding: 0;
+      margin-block-start: 3rem;
+    }
+    .piece__margin {
+      grid-row: 2;
+    }
+  }
+  @media (max-width: 47.99rem) {
+    .piece__crumbs,
+    .piece__head,
+    .piece__margin,
+    .piece__body,
+    .piece__study {
+      grid-column: text;
+      grid-row: auto;
+      position: static;
+    }
+    .piece__head {
+      padding-inline-end: 0;
+      padding-block: 1.25rem 1.75rem;
+    }
+    .piece__margin {
+      gap: 1.25rem;
+      padding-block-end: 2.5rem;
+    }
+    .piece__tools {
+      grid-auto-flow: column;
+      justify-content: start;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      flex-wrap: wrap;
+    }
+    .piece__tools > a {
+      display: none;
+    }
+    .piece__study {
+      width: 8rem;
+      margin: 3rem auto 0;
+    }
+    .turn__next {
+      grid-column: text;
+      padding: 0;
+    }
+  }
+</style>

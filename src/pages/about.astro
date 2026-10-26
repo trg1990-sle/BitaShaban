@@ -1,0 +1,264 @@
+---
+import Base from '~/layouts/Base.astro';
+import InkStudy from '~/components/InkStudy.astro';
+import { getAbout, getPost, getPosts } from '~/lib/content';
+import { segmentsHtml } from '~/lib/render';
+import { site } from '~/data/site';
+
+const about = await getAbout();
+const [posts, quoteSource] = await Promise.all([getPosts(), getPost(site.openingPoem)]);
+const showQuoteSource = !!(about.pullQuote && quoteSource && quoteSource.body.kind === 'verse' &&
+  quoteSource.body.blocks.some((b) => b.type === 'stanza' && b.lines.some((l) => about.pullQuote!.includes(l.text.trim()))));
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  mainEntity: {
+    '@type': 'Person',
+    name: site.name,
+    url: site.url,
+    description: about.description,
+    ...(site.email ? { email: `mailto:${site.email}` } : {}),
+  },
+};
+---
+
+<Base page="about" inkTrail="soft" title={about.title} description={about.description} type="profile" jsonLd={jsonLd}>
+  <article class="about">
+    <header class="about__head page-grid">
+      <p class="label about__kicker">About</p>
+      <h1 class="about__lede" data-wet="lines">{about.lede}</h1>
+    </header>
+
+    <div class="about__story page-grid has-margin-rule">
+      {
+        about.image && (
+          <figure class="about__figure ink-blend" data-wet="block">
+            <InkStudy class="is-art" image={about.image} sizes="(max-width: 48rem) 70vw, 18rem" widths={[320, 480, 720, 960]} loading="eager" />
+          </figure>
+        )
+      }
+
+      <div class="about__chapters">
+        {
+          about.chapters.slice(0, 2).map((c) => (
+            <section class="chapter" aria-labelledby={`ch-${c.heading.toLowerCase().replace(/\W+/g, '-')}`}>
+              <h2 class="chapter__heading" id={`ch-${c.heading.toLowerCase().replace(/\W+/g, '-')}`} data-wet="block">
+                {c.heading}
+              </h2>
+              <div class="chapter__body" data-reveal="blocks">
+                {c.paragraphs.map((p) => (
+                  <p set:html={segmentsHtml(p)} />
+                ))}
+              </div>
+            </section>
+          ))
+        }
+      </div>
+    </div>
+
+    {
+      about.pullQuote && (
+        <figure class="pull" data-ink-region>
+          <blockquote class="pull__quote" data-wet="lines">
+            <p>{about.pullQuote}</p>
+          </blockquote>
+          {showQuoteSource && quoteSource && (
+            <figcaption class="pull__source label" data-wet="block">
+              From <a href={quoteSource.url}>{quoteSource.title}</a>
+            </figcaption>
+          )}
+        </figure>
+      )
+    }
+
+    <div class="about__after page-grid has-margin-rule">
+      {
+        about.chapters.slice(2).map((c) => (
+          <section class="chapter" aria-labelledby={`ch-${c.heading.toLowerCase().replace(/\W+/g, '-')}`}>
+            <h2 class="chapter__heading" id={`ch-${c.heading.toLowerCase().replace(/\W+/g, '-')}`} data-wet="block">
+              {c.heading}
+            </h2>
+            <div class="chapter__body" data-reveal="blocks">
+              {c.paragraphs.map((p) => (
+                <p set:html={segmentsHtml(p)} />
+              ))}
+            </div>
+          </section>
+        ))
+      }
+
+      <section class="about__next" aria-labelledby="start-reading">
+        <h2 class="label about__next-label" id="start-reading">Start reading</h2>
+        <ul class="about__links" role="list">
+          <li>
+            <a href="/writing/">
+              All writing <span class="label">{posts.length} pieces</span>
+            </a>
+          </li>
+          {
+            quoteSource && (
+              <li>
+                <a href={quoteSource.url}>
+                  {quoteSource.title} <span class="label">a poem to begin</span>
+                </a>
+              </li>
+            )
+          }
+          {
+            site.email && (
+              <li>
+                <a href={`mailto:${site.email}`}>
+                  Write to Bita <span class="label">{site.email}</span>
+                </a>
+              </li>
+            )
+          }
+        </ul>
+      </section>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .about__head {
+    padding-block: calc(var(--header-h) + clamp(3rem, 9vw, 7rem)) clamp(4rem, 9vw, 7rem);
+    align-items: start;
+  }
+  .about__kicker {
+    grid-column: margin;
+    color: var(--fg-2);
+    padding-block-start: 1.1rem;
+  }
+  .about__lede {
+    grid-column: text-start / full-end;
+    padding-inline-end: var(--gutter);
+    max-width: 18em;
+    font-size: clamp(2.2rem, 1rem + 4.4vw, 5.25rem);
+    font-weight: 290;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  .about__story,
+  .about__after {
+    align-items: start;
+    row-gap: 4rem;
+  }
+  .about__figure {
+    grid-column: margin;
+    position: sticky;
+    top: calc(var(--header-h) + 2rem);
+  }
+  .about__figure :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .about__chapters {
+    grid-column: text;
+    display: grid;
+    gap: clamp(4rem, 9vw, 7rem);
+    padding-block-end: clamp(6rem, 12vw, 10rem);
+  }
+  .about__after {
+    padding-block-start: clamp(7rem, 14vw, 11rem);
+  }
+  .about__after > .chapter {
+    grid-column: text;
+  }
+  .chapter__heading {
+    margin-block-end: 1.5rem;
+    font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.1rem);
+    font-weight: 330;
+    font-style: italic;
+    line-height: 1.1;
+  }
+  .chapter__body {
+    font-size: var(--text);
+    line-height: 1.72;
+  }
+  .chapter__body :global(p + p) {
+    margin-block-start: 1.1lh;
+  }
+
+  .pull {
+    padding: clamp(9rem, 18vw, 14rem) var(--gutter);
+  }
+  .pull__quote {
+    max-width: 18em;
+    margin-inline: auto;
+    font-size: clamp(2rem, 1rem + 4vw, 4.75rem);
+    font-weight: 290;
+    font-style: italic;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    text-align: center;
+    text-wrap: balance;
+  }
+  .pull__quote p::before {
+    content: '“';
+  }
+  .pull__quote p::after {
+    content: '”';
+  }
+  .pull__source {
+    margin-block-start: 2.5rem;
+    text-align: center;
+    color: var(--fg-2);
+  }
+  .pull__source a {
+    color: var(--fg);
+  }
+
+  .about__next {
+    grid-column: text-start / full-end;
+    padding-inline-end: var(--gutter);
+  }
+  .about__next-label {
+    color: var(--fg-2);
+    margin-block-end: 1.25rem;
+  }
+  .about__links {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .about__links a {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 1rem;
+    font-size: clamp(1.6rem, 1rem + 2.4vw, 3rem);
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: -0.015em;
+    text-decoration: none;
+    transition:
+      color var(--quick) ease,
+      --soft 0.7s var(--ease-ink);
+  }
+  .about__links a:hover {
+    color: var(--accent);
+    --soft: 100;
+  }
+  .about__links .label {
+    font-style: normal;
+    color: var(--fg-2);
+  }
+
+  @media (max-width: 47.99rem) {
+    .about__kicker,
+    .about__lede,
+    .about__figure,
+    .about__next {
+      grid-column: text;
+      padding-inline-end: 0;
+    }
+    .about__figure {
+      position: static;
+      max-width: 16rem;
+    }
+  }
+</style>
